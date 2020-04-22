@@ -1,0 +1,32 @@
+---
+knit: "bookdown::render_book"
+title:
+  - type: main
+text: Kubernetes da Zero a Cento
+- type: subtitle
+text: Lorem ipsum dolor sic amet
+keywords: [nothing, nothingness]
+abstract: |
+  This is the abstract.
+
+It consists of two paragraphs.
+creator:
+  - role: author
+text: Gabriele Baldassarre
+rights: © 2020 Gabriele Baldassarre, CC BY-NC
+identifier:
+  - scheme: ISBN-13
+text: 1234567890
+ibooks:
+  version: 1.0.0
+link-citations: true
+date: "`r Sys.Date()`"
+site: "bookdown::bookdown_site"
+before_chapter_script: "_common.R"
+documentclass: book
+---
+
+`r if (knitr::is_latex_output()) '<!--'` 
+
+
+`r if (knitr::is_latex_output()) '-->'`

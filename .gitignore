@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+_book/
+*.log
+*~
+\#*
+_book/
+jupyter-edu-book.{Rmd,log,tex}
