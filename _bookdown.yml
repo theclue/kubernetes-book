@@ -14,6 +14,23 @@ language:
     appendix_name: 'Appendice '
 
 rmd_files: [
-  "index.rmd",
-  "introduzione.Rmd"
+  "index.Rmd",
+  "preface.Rmd"
+  "introduction.Rmd",
+  "general-concepts.Rmd",
+  "installing.Rmd",
+  "docker-primer.Rmd",
+  "pods.Rmd",
+  "replica-sets.Rmd",
+  "deployments",
+  "services",
+  "persistent-storage",
+  "special-workloads",
+  "cluster-topology",
+  "security",
+  "helm-primer",
+  "konfigure-primer",
+  "deployment-patterns",
+  "conclusions",
+  "reference"
   }

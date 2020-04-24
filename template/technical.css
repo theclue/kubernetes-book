@@ -132,7 +132,6 @@ h1 {
 
 h2 {
   text-indent: 0;
-  text-align: center;
   margin: 50px 0 0 0;
   font-size: 1.5em;
   font-weight: bold;
@@ -297,7 +296,7 @@ span.ibu {
   text-decoration: underline;
 }
 
-/* This fixes the bug where the text-align property of block-level elements is not recognized on iBooks 
+/* This fixes the bug where the text-align property of block-level elements is not recognized on iBooks
  example: html markup would look like <p class="centered"><span class="ipadcenterfix">Centered Content</span></p> */
 
 span.ipadcenterfix {
