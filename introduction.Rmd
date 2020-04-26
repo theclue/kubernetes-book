@@ -1,0 +1,97 @@
+# Introduzione a Kubernetes
+
+## Un po' di storia
+
+Intorno all'inizio degli anni Duemila, le macchine virtuali avevano soppiantato la modalità classica di erogazione dei servizi attravero l'uso di server fisici dedicati. Su un server fisico, attraverso un software supervisore, potevano essere eseguite più macchine virtuali, ognuna con il proprio sistema operativo e ognuna con il compito di eseguire una o poche applicazioni. Questo consentiva un notevole risparmio di risorse e la capacità di disaccoppiare l'applicazione in esecuzione dall'hardware che la ospitava.
+
+Ma le macchine virtuali, ognuno con il proprio sistema operativo completo, tendevano ad essere comunque molto grandi e pesanti, soprattutto in termini. Supervisori sempre più sofisticati avrebbero consentito ulteriori migliorie e i processori avrebbero aggiunto al proprio set di istruzioni delle funzioni adatte all'uso in ambiente virtuale con poco spreco di risorse. Ma alla base rimaneva un'inefficienza, frutto di un'ipotesi non del tutto corretta.
+
+Nel 2003 cominciò a a prendere piede l'idea che un'applicazione non aveva bisogno di _tutto_ il sistema operativo per funzionare, ma solo di una parte, un insieme  ridotto di servizi di sistema necessari all'applicazione per funzionare. Se si fosse stati in grado di creare una piccola scatola con dentro l'applicazione e solo questo sottinsieme di componenti, la macchina virtuale che ne sarebbe risultata sarebbe stata molto più piccola ed efficiente. Era nato il concetto di _container_.
+
+Diverse soluzioni erano già state sviluppate sull'argomento, per la verità; da parte di FreeBSD e di Solaris, soprattutto. In Google, invece, decisero di puntare tutto su Linux, contribuendo a sviluppare per questo sistema operativo tutto il necessario per eseguire applicazioni in container. Queste tecnologie furono rilasciate in open source e avrebbero reso, tra le altre cose, possibile la realizzazione, nel 2013, di Docker: i container divennero alla portata di tutti e la rivoluzione avrebbe, di li a poco, avuto ufficialmente inizio.
+
+Il primo _container management system_ sviluppato in Google fu __Borg__, che dal 2003 cominciò a soppiantare i precedenti sistemi di gestione nei data center di Mountain View. Borg, il nome preso dalla razza di cyborg di Star Trek, è stato pensato per gestire le decine di migliaia di server sui quale girano, in _miliardi_ di repliche identiche, i container che alimentato i più impegnativi servizi di Google, come GMail e Search. A distanza di oltre quindici anni dalla sua prima incarnazione e dopo aver subito molte migliorie, Borg è ancora in funzione sulla maggior parte dei data center della società, con un carico di macchine in cluster dell'ordine del milione di unità. È un software proprietario dell'azienda, utilizzato solo internamente; non ne è stata mai prevista una versione ad uso degli utenti, né tantomeno il suo codice è stato reso disponibile in formato _open source_.
+
+Facciamo ora un balzo in avanti e spostiamo il calendario al 2013, in piena _Docker Revolution_. La figura del _DevOp_ comincia a prendere piede anche fuori dalla Baia e c'è un interesse crescente della community di sviluppatori attorno ai _Linux Container_, a cui Google, come dicevamo, aveva dato ampio supporto. L'idea che il modo più naturale di offrire un servizio fosse attraverso un'applicazione eseguita in un container è un concetto universalmente accettato.
+
+Se, però, era vero che Docker rendeva lo sviluppo e l'esecuzione di applicazioni in container alla portata di tutti, meno robusta era la sua capacità di scalare questa esecuzione su cluster di grandi dimensioni. Incredibilmente efficace nel gestire i container ospitati su una singola macchina, meno bene si adattava a gestire scenari più complessi.
+
+Kubernetes è il tentativo di colmare questa lacuna. Sviluppato da zero a partire dal 2013 dallo stesso team al lavoro su Borg, all'inizio è chiamato _Progetto Sette di Nove_, dal nome di un personaggio di razza borg della serie TV Star Trek Voyager. È rilasciato l'anno successivo con il nome attuale e condivide con l'illustre predecessore molti aspetti. È, però, più flessibile e facile da usare, perché pensato per essere usato da tutti gli utenti, non solo dai tecnici di Google. Come Borg, si occupa di gestire l'orchestrazione in cluster di grandi dimensioni, ma a differenza di questo, le applicazioni sul cluster sono eseguite in container Docker, il che ne rende facile l'adozione da parte di nuovi utenti. È offerto come servizio della famiglia Google Cloud Platform, ma anche come applicativo da installare sulla propria _farm_ o, perché no, sul proprio laptop. Sì, perché, cosa più importante, Kubernetes è totalmente _open source_.
+
+Al momento in cui scrivo, Kubernetes è arrivato alla versione 1.18. In questi sei anni, ha subito molte revisioni e migliorie, frutto del lavoro di Google, ma soprattutto della community di utenti entusiasti e di aziende in tutto il mondo che ne hanno fatto una parte essenziale della loro offerta di servizi. Il codice sorgente è sempre disponibile su Github ed è costantemente arricchito e migliorato. Rimane, come memoria di quegli anni, il logo del timone formato da sette bracci. In onore, manco a dirlo, a Sette di Nove.
+
+## Il paradigma a microservizi
+
+Prima di definire esattamente cos'è Kubernetes, è utile spendere due parole su ciò che, tipicamente, ci aspettiamo di trovarci sopra. Poiché questo non è un libro di ingegneria del software, posso permettermi di estremizzare un po' la trattazione in questo paragrafo o, per meglio dire, di semplificare un po' la realtà.
+
+Prima dell'avvento dei _container_ era abbastanza automatico, per gli architetti software, seguire un pattern architetturale _monolitico_; vedere, in pratica, l'applicazione come un unico blocco, atomico ed indivisibile. Una volta costruita e testata l'applicazione, veniva dimensionata l'infrastruttura necessaria ad ospitarla, per esempio una macchina virtuale. Nel farlo, era spesso obbligatorio sovradimensionare le risorse, per poter garantire il corretto funzionamento nel proverbiale caso peggiore (per esempio, un picco di utenti collegati contemporaneamente). Tanto più estremo era il possibile caso eccezionale, tanto maggiormente doveva essere sovradimensinata l'infrastruttura. Questo implicava che, in condizioni normali, molte risorse sarebbero state sprecate. Dopotutto il caso eccezionale è, per sua stessa definizione, molto raro.
+
+I container, e Docker più di ogni altro, hanno aggiunto alla disciplina dello sviluppo software la possibilità di dividere l'applicazione in container separati connessi tra di loro, una sorta di separazione in moduli applicativi distinti, ognuno preposto ad offrire un particolare servizio agli utenti o agli altri elementi dell'applicazione stessa. Come gli strumenti di un'orchestra che cooperano per eseguire una sinfornia.
+
+Il fatto che, utilizzando questa tecnica, si tenga separata l'applicazione dall'infrastruttura che la ospita, fa sì che la scelta di quanti container utilizzare e di come separare i servizi tra di loro sia solo una scelta di design applicativo, senza che incorrano vincoli tecnologici o infrastrutturali. Se l'applicazione è stata disegnata bene, il risultato è una sinfornia bene eseguita, molto efficiente in termini di uso delle risorse. È la cosiddetta _architettura a microservizi_.
+
+Questa separazione delle responsabilità giova innanzitutto in fase di sviluppo del software (facilitando collaborazione e sviluppo in team, ad esempio) e contribuisce a risolvere molti problemi in termini di _consistenza_ e di _sicurezza_, ma è soprattutto sui vantaggi in termini di _scalabilità_ che ci concentreremo in questo libro.
+
+Il paradigma di sviluppo a microservizi, prevede, come abbiamo detto, di separare le varie parti di un'applicazione in container funzionalmente separati. Quello che non abbiamo ancora detto è che, nel caso vi sia la necessità (il picco di utenti connessi di cui sopra), nulla vieta di creare ed eseguire altre copie del container chiamato in causa, _e solo quello_, tante quante sono necessarie a soddisfare tutti gli utenti. Posto che si abbia un'infrastruttura adatta per ospitare tutti questi container creati dinamicamente, l'applicazione reggerà l'urto e non deluderà nessun utente. E questi container aggiuntivi, una volta cessato il picco, possono essere eliminati e le risorse da essi impiegati riassegnate ad altri scopi.
+
+
+Quello che ne deriva è che i container sono degli oggetti effimeri, che vanno e vengono a seconda delle richieste. Se ci sono dei picchi di attività, ne vengono creati degli altri;  quando il picco di attività cessa, essi vengono distrutti per risparmiare risorse. Quel che è certo è che, anche per logica a microservizi che abbiamo visto sopra, su un'infrastruttura tipicamente ci sono centinaia, se non migliaia di container in esecuzione contemporaneamente.
+
+Con tanti container, la possibilità che qualcuno di essi vada in errore passa da _"trascurabile"_ a _"accadrà di sicuro"_. Poiché non è pensabile che vi sia un intervento umano, il software che controlla il carico sui sui servizi, per verificare che non ci sia bisogno di creare delle repliche, deve occuparsi anche di controllare lo stato di salute di ogni container e di sostituire con nuovi container quelli che sono terminati con un errore, terminare queli che hanni smesso di rispondere e così via.
+
+Ed è qui che entra in gioco Kubernetes.
+
+## Che cos'è Kubernetes?
+
+Container orchestration is all about managing the lifecycles of containers, especially in large, dynamic environments. Software teams use container orchestration to control and automate many tasks:
+
+Provisioning and deployment of containers
+Redundancy and availability of containers
+Scaling up or removing containers to spread application load evenly across host infrastructure
+Movement of containers from one host to another if there is a shortage of resources in a host, or if a host dies
+Allocation of resources between containers
+External exposure of services running in a container with the outside world
+Load balancing of service discovery between containers
+Health monitoring of containers and hosts
+Configuration of an application in relation to the containers running it
+
+When you use a container orchestration tool, like Kubernetes or Docker Swarm (more on these shortly), you typically describe the configuration of your application in a YAML or JSON file, depending on the orchestration tool. These configurations files (for example, docker-compose.yml) are where you tell the orchestration tool where to gather container images (for example, from Docker Hub), how to establish networking between containers, how to mount storage volumes, and where to store logs for that container. Typically, teams will branch and version control these configuration files so they can deploy the same applications across different development and testing environments before deploying them to production clusters.
+
+Containers are deployed onto hosts, usually in replicated groups. When it’s time to deploy a new container into a cluster, the container orchestration tool schedules the deployment and looks for the most appropriate host to place the container based on predefined constraints (for example, CPU or memory availability). You can even place containers according to labels or metadata, or according to their proximity in relation to other hosts—all kinds of constraints can be used.
+
+Once the container is running on the host, the orchestration tool manages its lifecycle according to the specifications you laid out in the container’s definition file (for example, its Dockerfile).
+
+The beauty of container orchestration tools is that you can use them in any environment in which you can run containers. And containers are supported in just about any kind of environment these days, from traditional on-premise servers to public cloud instances running in Amazon Web Services (AWS), Google Cloud Platform (GCP), or Microsoft Azure. Additionally, most container orchestration tools are built with Docker containers in mind.
+
+Container-based microservices architectures have profoundly changed the way development and operations teams test and deploy modern software. Containers help companies modernize by making it easier to scale and deploy applications, but containers have also introduced new challenges and more complexity by creating an entirely new infrastructure ecosystem.
+
+Large and small software companies alike are now deploying thousands of container instances daily, and that’s a complexity of scale they have to manage. So how do they do it?
+
+Enter the age of Kubernetes.
+
+Originally developed by Google, Kubernetes is an open-source container orchestration platform designed to automate the deployment, scaling, and management of containerized applications. In fact, Kubernetes has established itself as the defacto standard for container orchestration and is the flagship project of the Cloud Native Computing Foundation (CNCF), backed by key players like Google, AWS, Microsoft, IBM, Intel, Cisco, and Red Hat.
+
+Kubernetes makes it easy to deploy and operate applications in a microservice architecture. It does so by creating an abstraction layer on top of a group of hosts, so that development teams can deploy their applications and let Kubernetes manage:
+
+Controlling resource consumption by application or team
+Evenly spreading application load across a host infrastructure
+Automatically load balancing requests across the different instances of an application
+Monitoring resource consumption and resource limits to automatically stop applications from consuming too many resources and restarting the applications again
+Moving an application instance from one host to another if there is a shortage of resources in a host, or if the host dies
+Automatically leveraging additional resources made available when a new host is added to the cluster
+Easily performing canary deployments and rollbacks
+
+## Perché dovresti usarlo
+
+###  Il ruolo dell'infrastruttura
+
+## La Cloud Native Computing Foundation
+
+## Cosa ci riserva il futuro?
+
+
+[^1]: Cit. https://storage.googleapis.com/pub-tools-public-publication-data/pdf/43438.pdf
+
+[^2]: A quanto si dice, la ruota del timone che costituisce il logo di Kubernetes ha sette raggi in onore di Sette di Nove, un personaggio borg della serie TV Star Trek: Voyager, in onore all'illustre capostipite.
+
+[^3]: In inglese suonano meglio: _scalability_, _reliability_ e _high availability_.
